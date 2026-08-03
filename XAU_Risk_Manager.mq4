@@ -1,102 +1,102 @@
 //+------------------------------------------------------------------+
-//| XAU_Risk_Manager.mq4                                              |
-//| MT4 Risk Management Expert Advisor                                |
+//| XAU_Risk_Manager.mq4                                             |
+//| Risk Management EA for MT4                                       |
 //+------------------------------------------------------------------+
 
 #property strict
 
-input double RiskPercent = 1.0;       // Risk per trade %
-input int MaxOpenTrades = 3;          // Maximum open trades
-input double DailyLossLimit = 3.0;    // Daily loss limit %
+input double RiskPercent = 1.0;
+input int MaxOpenTrades = 3;
+input double DailyLossLimit = 3.0;
 
-input int StopLossPoints = 500;        // Stop loss points
+string PanelName="XAU_RISK_PANEL";
 
 double StartBalance;
 
+
 //+------------------------------------------------------------------+
+
 int OnInit()
 {
-   StartBalance = AccountBalance();
+   StartBalance=AccountBalance();
 
-   Comment(
-   "XAU Risk Manager\n",
-   "Risk: ",RiskPercent,"%\n",
-   "Max Trades: ",MaxOpenTrades,"\n",
-   "Daily Loss: ",DailyLossLimit,"%"
-   );
+   CreatePanel();
 
    return(INIT_SUCCEEDED);
 }
 
+
 //+------------------------------------------------------------------+
-void OnTick()
+
+void OnDeinit(const int reason)
 {
-   CheckDailyLoss();
-   CheckTradeLimit();
+   DeletePanel();
 }
 
+
 //+------------------------------------------------------------------+
 
-void CheckTradeLimit()
+void OnTick()
 {
-   int count=0;
+   UpdatePanel();
+   CheckRisk();
+}
 
-   for(int i=OrdersTotal()-1;i>=0;i--)
+
+//+------------------------------------------------------------------+
+
+void CreatePanel()
+{
+   ObjectCreate(0,PanelName,OBJ_LABEL,0,0,0);
+
+   ObjectSetInteger(0,PanelName,OBJPROP_CORNER,CORNER_LEFT_UPPER);
+   ObjectSetInteger(0,PanelName,OBJPROP_XDISTANCE,10);
+   ObjectSetInteger(0,PanelName,OBJPROP_YDISTANCE,20);
+
+   ObjectSetString(0,PanelName,OBJPROP_FONT,"Arial");
+   ObjectSetInteger(0,PanelName,OBJPROP_FONTSIZE,12);
+}
+
+
+//+------------------------------------------------------------------+
+
+void UpdatePanel()
+{
+   int trades=0;
+
+   for(int i=0;i<OrdersTotal();i++)
    {
       if(OrderSelect(i,SELECT_BY_POS,MODE_TRADES))
       {
          if(OrderSymbol()==Symbol())
-            count++;
+            trades++;
       }
    }
 
-   if(count>=MaxOpenTrades)
-   {
-      Comment(
-      "XAU Risk Manager\n",
-      "Trading blocked\n",
-      "Max trades reached: ",
-      MaxOpenTrades
-      );
-   }
-}
 
-//+------------------------------------------------------------------+
-
-void CheckDailyLoss()
-{
-   double lossPercent=
+   double loss=
    ((StartBalance-AccountBalance())/StartBalance)*100;
 
-   if(lossPercent>=DailyLossLimit)
-   {
-      Comment(
-      "XAU Risk Manager\n",
-      "Daily loss limit reached\n",
-      lossPercent,"%"
-      );
-   }
+
+   string text;
+
+   text=
+   "XAU Risk Manager\n"
+   +"----------------\n"
+   +"Balance: "+DoubleToString(AccountBalance(),2)+"\n"
+   +"Equity: "+DoubleToString(AccountEquity(),2)+"\n"
+   +"Risk: "+DoubleToString(RiskPercent,1)+"%\n"
+   +"Trades: "+IntegerToString(trades)+"\n"
+   +"Daily Loss: "+DoubleToString(loss,2)+"%";
+
+
+   ObjectSetString(0,PanelName,OBJPROP_TEXT,text);
 }
+
 
 //+------------------------------------------------------------------+
 
-double CalculateLot()
+void DeletePanel()
 {
-   double riskMoney=
-   AccountBalance()*RiskPercent/100;
-
-   double tickValue=
-   MarketInfo(Symbol(),MODE_TICKVALUE);
-
-   double lot=
-   riskMoney/(StopLossPoints*tickValue);
-
-   lot=NormalizeDouble(lot,2);
-
-   if(lot<0.01)
-      lot=0.01;
-
-   return(lot);
+   ObjectDelete(0,PanelName);
 }
-
-//+------------------------------------------------------------------+
