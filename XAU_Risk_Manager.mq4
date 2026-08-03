@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//| XAU_Risk_Manager_V2.mq4                                          |
+//| RiskManager_Final.mq4                                            |
 //+------------------------------------------------------------------+
 
 #property strict
@@ -11,33 +11,33 @@ input int MaxOpenTrades = 3;
 
 double StartBalance;
 
-string Panel="XAU_PANEL_V2";
-string CloseButton="CLOSE_ALL_V2";
+string PanelName = "RISK_MANAGER_FINAL_PANEL";
+string ButtonName = "RISK_MANAGER_CLOSE_ALL";
 
 
 //+------------------------------------------------------------------+
 int OnInit()
 {
-   StartBalance=AccountBalance();
+   StartBalance = AccountBalance();
 
-   ObjectDelete(0,Panel);
-   ObjectDelete(0,CloseButton);
-
-
-   ObjectCreate(0,Panel,OBJ_LABEL,0,0,0);
-   ObjectSetInteger(0,Panel,OBJPROP_CORNER,CORNER_LEFT_UPPER);
-   ObjectSetInteger(0,Panel,OBJPROP_XDISTANCE,10);
-   ObjectSetInteger(0,Panel,OBJPROP_YDISTANCE,20);
-   ObjectSetInteger(0,Panel,OBJPROP_FONTSIZE,12);
+   ObjectDelete(0,PanelName);
+   ObjectDelete(0,ButtonName);
 
 
-   ObjectCreate(0,CloseButton,OBJ_BUTTON,0,0,0);
-   ObjectSetInteger(0,CloseButton,OBJPROP_CORNER,CORNER_LEFT_UPPER);
-   ObjectSetInteger(0,CloseButton,OBJPROP_XDISTANCE,10);
-   ObjectSetInteger(0,CloseButton,OBJPROP_YDISTANCE,120);
-   ObjectSetInteger(0,CloseButton,OBJPROP_XSIZE,100);
-   ObjectSetInteger(0,CloseButton,OBJPROP_YSIZE,25);
-   ObjectSetString(0,CloseButton,OBJPROP_TEXT,"Close All");
+   ObjectCreate(0,PanelName,OBJ_LABEL,0,0,0);
+   ObjectSetInteger(0,PanelName,OBJPROP_CORNER,CORNER_LEFT_UPPER);
+   ObjectSetInteger(0,PanelName,OBJPROP_XDISTANCE,10);
+   ObjectSetInteger(0,PanelName,OBJPROP_YDISTANCE,20);
+   ObjectSetInteger(0,PanelName,OBJPROP_FONTSIZE,12);
+
+
+   ObjectCreate(0,ButtonName,OBJ_BUTTON,0,0,0);
+   ObjectSetInteger(0,ButtonName,OBJPROP_CORNER,CORNER_LEFT_UPPER);
+   ObjectSetInteger(0,ButtonName,OBJPROP_XDISTANCE,10);
+   ObjectSetInteger(0,ButtonName,OBJPROP_YDISTANCE,150);
+   ObjectSetInteger(0,ButtonName,OBJPROP_XSIZE,100);
+   ObjectSetInteger(0,ButtonName,OBJPROP_YSIZE,25);
+   ObjectSetString(0,ButtonName,OBJPROP_TEXT,"Close All");
 
 
    return(INIT_SUCCEEDED);
@@ -45,19 +45,12 @@ int OnInit()
 
 
 //+------------------------------------------------------------------+
-void OnDeinit(const int reason)
-{
-   ObjectDelete(0,Panel);
-   ObjectDelete(0,CloseButton);
-}
-
-
-//+------------------------------------------------------------------+
 void OnTick()
 {
+   double loss = 0;
 
-   double loss=
-   ((StartBalance-AccountBalance())/StartBalance)*100;
+   if(StartBalance>0)
+      loss=((StartBalance-AccountBalance())/StartBalance)*100;
 
 
    int trades=0;
@@ -74,21 +67,15 @@ void OnTick()
 
    string status="NORMAL";
 
-
    if(EnableRiskLock && loss>=DailyLossLimit)
-   {
       status="RISK LOCKED";
-   }
-
 
    if(trades>=MaxOpenTrades)
-   {
       status="MAX TRADES";
-   }
 
 
-   string txt=
-   "XAU Risk Manager V2\n"
+   string text=
+   "Risk Manager Final\n"
    "----------------\n"
    "Balance: "+DoubleToString(AccountBalance(),2)+"\n"
    "Equity: "+DoubleToString(AccountEquity(),2)+"\n"
@@ -97,10 +84,11 @@ void OnTick()
    "Status: "+status;
 
 
-   ObjectSetString(0,Panel,OBJPROP_TEXT,txt);
+   ObjectSetString(0,PanelName,OBJPROP_TEXT,text);
+}
 
-}//+------------------------------------------------------------------+
 
+//+------------------------------------------------------------------+
 void OnChartEvent(const int id,
                   const long &lparam,
                   const double &dparam,
@@ -108,16 +96,13 @@ void OnChartEvent(const int id,
 {
    if(id==CHARTEVENT_OBJECT_CLICK)
    {
-      if(sparam==CloseButton)
-      {
+      if(sparam==ButtonName)
          CloseAll();
-      }
    }
 }
 
 
 //+------------------------------------------------------------------+
-
 void CloseAll()
 {
    for(int i=OrdersTotal()-1;i>=0;i--)
@@ -126,31 +111,13 @@ void CloseAll()
       {
          if(OrderSymbol()==Symbol())
          {
-
             if(OrderType()==OP_BUY)
-            {
-               OrderClose(
-               OrderTicket(),
-               OrderLots(),
-               Bid,
-               5
-               );
-            }
-
+               OrderClose(OrderTicket(),OrderLots(),Bid,5);
 
             if(OrderType()==OP_SELL)
-            {
-               OrderClose(
-               OrderTicket(),
-               OrderLots(),
-               Ask,
-               5
-               );
-            }
-
+               OrderClose(OrderTicket(),OrderLots(),Ask,5);
          }
       }
    }
 }
-
 //+------------------------------------------------------------------+
