@@ -16,7 +16,6 @@ string CloseButton="CLOSE_ALL";
 
 
 //+------------------------------------------------------------------+
-
 int OnInit()
 {
    StartBalance=AccountBalance();
@@ -29,7 +28,6 @@ int OnInit()
 
 
 //+------------------------------------------------------------------+
-
 void OnDeinit(const int reason)
 {
    ObjectDelete(0,Panel);
@@ -38,7 +36,6 @@ void OnDeinit(const int reason)
 
 
 //+------------------------------------------------------------------+
-
 void OnTick()
 {
    UpdatePanel();
@@ -47,7 +44,6 @@ void OnTick()
 
 
 //+------------------------------------------------------------------+
-
 void CreatePanel()
 {
    ObjectCreate(0,Panel,OBJ_LABEL,0,0,0);
@@ -60,7 +56,6 @@ void CreatePanel()
 
 
 //+------------------------------------------------------------------+
-
 void CreateButton()
 {
    ObjectCreate(0,CloseButton,OBJ_BUTTON,0,0,0);
@@ -77,7 +72,6 @@ void CreateButton()
 
 
 //+------------------------------------------------------------------+
-
 void UpdatePanel()
 {
    int trades=0;
@@ -91,11 +85,11 @@ void UpdatePanel()
       }
    }
 
-   double loss=
-   ((StartBalance-AccountBalance())/StartBalance)*100;
+
+   double loss=((StartBalance-AccountBalance())/StartBalance)*100;
 
 
-   string text =
+   string text=
    "XAU Risk Manager\n"
    "----------------\n"
    "Balance: "+DoubleToString(AccountBalance(),2)+"\n"
@@ -107,13 +101,12 @@ void UpdatePanel()
 
    ObjectSetString(0,Panel,OBJPROP_TEXT,text);
 }
-//+------------------------------------------------------------------+
 
+
+//+------------------------------------------------------------------+
 void CheckRisk()
 {
-   double loss=
-   ((StartBalance-AccountBalance())/StartBalance)*100;
-
+   double loss=((StartBalance-AccountBalance())/StartBalance)*100;
 
    if(loss>=DailyLossLimit)
    {
@@ -129,7 +122,6 @@ void CheckRisk()
 
 
 //+------------------------------------------------------------------+
-
 void OnChartEvent(const int id,
                   const long &lparam,
                   const double &dparam,
@@ -146,7 +138,6 @@ void OnChartEvent(const int id,
 
 
 //+------------------------------------------------------------------+
-
 void CloseAll()
 {
    for(int i=OrdersTotal()-1;i>=0;i--)
@@ -156,29 +147,12 @@ void CloseAll()
          if(OrderSymbol()==Symbol())
          {
             if(OrderType()==OP_BUY)
-            {
-               OrderClose(
-               OrderTicket(),
-               OrderLots(),
-               Bid,
-               5
-               );
-            }
-
+               OrderClose(OrderTicket(),OrderLots(),Bid,5);
 
             if(OrderType()==OP_SELL)
-            {
-               OrderClose(
-               OrderTicket(),
-               OrderLots(),
-               Ask,
-               5
-               );
-            }
+               OrderClose(OrderTicket(),OrderLots(),Ask,5);
          }
       }
    }
 }
-
-
 //+------------------------------------------------------------------+
