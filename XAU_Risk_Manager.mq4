@@ -107,3 +107,78 @@ void UpdatePanel()
 
    ObjectSetString(0,Panel,OBJPROP_TEXT,text);
 }
+//+------------------------------------------------------------------+
+
+void CheckRisk()
+{
+   double loss=
+   ((StartBalance-AccountBalance())/StartBalance)*100;
+
+
+   if(loss>=DailyLossLimit)
+   {
+      Comment(
+      "XAU Risk Manager\n",
+      "DAILY LOSS LIMIT REACHED\n",
+      "Loss: ",
+      DoubleToString(loss,2),
+      "%"
+      );
+   }
+}
+
+
+//+------------------------------------------------------------------+
+
+void OnChartEvent(const int id,
+                  const long &lparam,
+                  const double &dparam,
+                  const string &sparam)
+{
+   if(id==CHARTEVENT_OBJECT_CLICK)
+   {
+      if(sparam==CloseButton)
+      {
+         CloseAll();
+      }
+   }
+}
+
+
+//+------------------------------------------------------------------+
+
+void CloseAll()
+{
+   for(int i=OrdersTotal()-1;i>=0;i--)
+   {
+      if(OrderSelect(i,SELECT_BY_POS,MODE_TRADES))
+      {
+         if(OrderSymbol()==Symbol())
+         {
+            if(OrderType()==OP_BUY)
+            {
+               OrderClose(
+               OrderTicket(),
+               OrderLots(),
+               Bid,
+               5
+               );
+            }
+
+
+            if(OrderType()==OP_SELL)
+            {
+               OrderClose(
+               OrderTicket(),
+               OrderLots(),
+               Ask,
+               5
+               );
+            }
+         }
+      }
+   }
+}
+
+
+//+------------------------------------------------------------------+
