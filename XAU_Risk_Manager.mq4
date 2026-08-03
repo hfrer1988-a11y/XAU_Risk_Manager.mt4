@@ -1,12 +1,12 @@
 //+------------------------------------------------------------------+
 //| XAU_Risk_Manager.mq4                                             |
-//| MT4 Risk Manager                                                  |
 //+------------------------------------------------------------------+
 
 #property strict
 
 input double RiskPercent = 1.0;
 input double DailyLossLimit = 3.0;
+input bool EnableRiskLock = true;
 
 double StartBalance;
 
@@ -51,6 +51,23 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTick()
 {
+   double loss=
+   ((StartBalance-AccountBalance())/StartBalance)*100;
+
+
+   if(EnableRiskLock && loss>=DailyLossLimit)
+   {
+      ObjectSetString(0,Panel,OBJPROP_TEXT,
+      "XAU Risk Manager\n"
+      "----------------\n"
+      "RISK LOCKED\n"
+      "Loss: "
+      +DoubleToString(loss,2)+"%");
+
+      return;
+   }
+
+
    int trades=0;
 
    for(int i=0;i<OrdersTotal();i++)
@@ -63,9 +80,6 @@ void OnTick()
    }
 
 
-   double loss=((StartBalance-AccountBalance())/StartBalance)*100;
-
-
    string txt=
    "XAU Risk Manager\n"
    "----------------\n"
@@ -76,13 +90,6 @@ void OnTick()
 
 
    ObjectSetString(0,Panel,OBJPROP_TEXT,txt);
-
-
-   if(loss>=DailyLossLimit)
-   {
-      Comment("DAILY LOSS LIMIT REACHED ",
-      DoubleToString(loss,2),"%");
-   }
 }//+------------------------------------------------------------------+
 
 void OnChartEvent(const int id,
@@ -110,6 +117,7 @@ void CloseAll()
       {
          if(OrderSymbol()==Symbol())
          {
+
             if(OrderType()==OP_BUY)
             {
                OrderClose(
@@ -120,6 +128,7 @@ void CloseAll()
                );
             }
 
+
             if(OrderType()==OP_SELL)
             {
                OrderClose(
@@ -129,6 +138,7 @@ void CloseAll()
                5
                );
             }
+
          }
       }
    }
