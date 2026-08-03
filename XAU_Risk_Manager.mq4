@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//| XAU_Risk_Manager.mq4                                             |
+//| XAU_Risk_Manager_V2.mq4                                          |
 //+------------------------------------------------------------------+
 
 #property strict
@@ -11,14 +11,18 @@ input int MaxOpenTrades = 3;
 
 double StartBalance;
 
-string Panel="XAU_PANEL";
-string CloseButton="CLOSE_ALL";
+string Panel="XAU_PANEL_V2";
+string CloseButton="CLOSE_ALL_V2";
 
 
 //+------------------------------------------------------------------+
 int OnInit()
 {
    StartBalance=AccountBalance();
+
+   ObjectDelete(0,Panel);
+   ObjectDelete(0,CloseButton);
+
 
    ObjectCreate(0,Panel,OBJ_LABEL,0,0,0);
    ObjectSetInteger(0,Panel,OBJPROP_CORNER,CORNER_LEFT_UPPER);
@@ -51,6 +55,7 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTick()
 {
+
    double loss=
    ((StartBalance-AccountBalance())/StartBalance)*100;
 
@@ -67,26 +72,23 @@ void OnTick()
    }
 
 
+   string status="NORMAL";
+
+
    if(EnableRiskLock && loss>=DailyLossLimit)
    {
-      ObjectSetString(0,Panel,OBJPROP_TEXT,
-      "XAU Risk Manager\n"
-      "----------------\n"
-      "RISK LOCKED\n"
-      "Loss: "+DoubleToString(loss,2)+"%");
-
-      return;
+      status="RISK LOCKED";
    }
 
 
-   string status="NORMAL";
-
    if(trades>=MaxOpenTrades)
+   {
       status="MAX TRADES";
+   }
 
 
    string txt=
-   "XAU Risk Manager\n"
+   "XAU Risk Manager V2\n"
    "----------------\n"
    "Balance: "+DoubleToString(AccountBalance(),2)+"\n"
    "Equity: "+DoubleToString(AccountEquity(),2)+"\n"
@@ -96,6 +98,7 @@ void OnTick()
 
 
    ObjectSetString(0,Panel,OBJPROP_TEXT,txt);
+
 }//+------------------------------------------------------------------+
 
 void OnChartEvent(const int id,
@@ -149,6 +152,5 @@ void CloseAll()
       }
    }
 }
-
 
 //+------------------------------------------------------------------+
