@@ -1,0 +1,1 @@
+# XAU_Risk_Manager.mt4
