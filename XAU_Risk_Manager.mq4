@@ -7,6 +7,7 @@
 input double RiskPercent = 1.0;
 input double DailyLossLimit = 3.0;
 input bool EnableRiskLock = true;
+input int MaxOpenTrades = 3;
 
 double StartBalance;
 
@@ -24,7 +25,6 @@ int OnInit()
    ObjectSetInteger(0,Panel,OBJPROP_XDISTANCE,10);
    ObjectSetInteger(0,Panel,OBJPROP_YDISTANCE,20);
    ObjectSetInteger(0,Panel,OBJPROP_FONTSIZE,12);
-   ObjectSetString(0,Panel,OBJPROP_TEXT,"XAU Risk Manager");
 
 
    ObjectCreate(0,CloseButton,OBJ_BUTTON,0,0,0);
@@ -55,19 +55,6 @@ void OnTick()
    ((StartBalance-AccountBalance())/StartBalance)*100;
 
 
-   if(EnableRiskLock && loss>=DailyLossLimit)
-   {
-      ObjectSetString(0,Panel,OBJPROP_TEXT,
-      "XAU Risk Manager\n"
-      "----------------\n"
-      "RISK LOCKED\n"
-      "Loss: "
-      +DoubleToString(loss,2)+"%");
-
-      return;
-   }
-
-
    int trades=0;
 
    for(int i=0;i<OrdersTotal();i++)
@@ -80,13 +67,32 @@ void OnTick()
    }
 
 
+   if(EnableRiskLock && loss>=DailyLossLimit)
+   {
+      ObjectSetString(0,Panel,OBJPROP_TEXT,
+      "XAU Risk Manager\n"
+      "----------------\n"
+      "RISK LOCKED\n"
+      "Loss: "+DoubleToString(loss,2)+"%");
+
+      return;
+   }
+
+
+   string status="NORMAL";
+
+   if(trades>=MaxOpenTrades)
+      status="MAX TRADES";
+
+
    string txt=
    "XAU Risk Manager\n"
    "----------------\n"
    "Balance: "+DoubleToString(AccountBalance(),2)+"\n"
    "Equity: "+DoubleToString(AccountEquity(),2)+"\n"
-   "Trades: "+IntegerToString(trades)+"\n"
-   "Loss: "+DoubleToString(loss,2)+"%";
+   "Trades: "+IntegerToString(trades)+"/"+IntegerToString(MaxOpenTrades)+"\n"
+   "Loss: "+DoubleToString(loss,2)+"%\n"
+   "Status: "+status;
 
 
    ObjectSetString(0,Panel,OBJPROP_TEXT,txt);
@@ -143,5 +149,6 @@ void CloseAll()
       }
    }
 }
+
 
 //+------------------------------------------------------------------+
