@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //| XAU_Risk_Manager.mq4                                             |
-//| MT4 Gold Risk Manager                                            |
+//| MT4 Risk Manager                                                  |
 //+------------------------------------------------------------------+
 
 #property strict
@@ -17,13 +17,14 @@ string CloseButton="CLOSE_ALL";
 //+------------------------------------------------------------------+
 int OnInit()
 {
-   StartBalance = AccountBalance();
+   StartBalance=AccountBalance();
 
    ObjectCreate(0,Panel,OBJ_LABEL,0,0,0);
    ObjectSetInteger(0,Panel,OBJPROP_CORNER,CORNER_LEFT_UPPER);
    ObjectSetInteger(0,Panel,OBJPROP_XDISTANCE,10);
    ObjectSetInteger(0,Panel,OBJPROP_YDISTANCE,20);
    ObjectSetInteger(0,Panel,OBJPROP_FONTSIZE,12);
+   ObjectSetString(0,Panel,OBJPROP_TEXT,"XAU Risk Manager");
 
 
    ObjectCreate(0,CloseButton,OBJ_BUTTON,0,0,0);
@@ -62,35 +63,28 @@ void OnTick()
    }
 
 
-   double loss =
-   ((StartBalance-AccountBalance())/StartBalance)*100;
+   double loss=((StartBalance-AccountBalance())/StartBalance)*100;
 
 
-   string text =
+   string txt=
    "XAU Risk Manager\n"
    "----------------\n"
    "Balance: "+DoubleToString(AccountBalance(),2)+"\n"
    "Equity: "+DoubleToString(AccountEquity(),2)+"\n"
-   "Risk: "+DoubleToString(RiskPercent,1)+"%\n"
    "Trades: "+IntegerToString(trades)+"\n"
    "Loss: "+DoubleToString(loss,2)+"%";
 
 
-   ObjectSetString(0,Panel,OBJPROP_TEXT,text);
+   ObjectSetString(0,Panel,OBJPROP_TEXT,txt);
 
 
    if(loss>=DailyLossLimit)
    {
-      Comment(
-      "DAILY LOSS LIMIT REACHED\n",
-      DoubleToString(loss,2),
-      "%"
-      );
+      Comment("DAILY LOSS LIMIT REACHED ",
+      DoubleToString(loss,2),"%");
    }
-}
+}//+------------------------------------------------------------------+
 
-
-//+------------------------------------------------------------------+
 void OnChartEvent(const int id,
                   const long &lparam,
                   const double &dparam,
@@ -107,6 +101,7 @@ void OnChartEvent(const int id,
 
 
 //+------------------------------------------------------------------+
+
 void CloseAll()
 {
    for(int i=OrdersTotal()-1;i>=0;i--)
@@ -116,12 +111,27 @@ void CloseAll()
          if(OrderSymbol()==Symbol())
          {
             if(OrderType()==OP_BUY)
-               OrderClose(OrderTicket(),OrderLots(),Bid,5);
+            {
+               OrderClose(
+               OrderTicket(),
+               OrderLots(),
+               Bid,
+               5
+               );
+            }
 
             if(OrderType()==OP_SELL)
-               OrderClose(OrderTicket(),OrderLots(),Ask,5);
+            {
+               OrderClose(
+               OrderTicket(),
+               OrderLots(),
+               Ask,
+               5
+               );
+            }
          }
       }
    }
 }
+
 //+------------------------------------------------------------------+
